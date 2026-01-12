@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система управления складом</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-warehouse"></i> Управление складом</h1>
+            <div class="auth-section">
+                <button id="authButton" class="btn btn-auth">
+                    <i class="fas fa-sign-in-alt"></i> Авторизоваться
+                </button>
+                <div id="userInfo" class="hidden">
+                    <span id="userName"></span>
+                </div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="add">📦 Прием товара</button>
+            <button class="tab-btn" data-tab="sell">💰 Отпуск товара</button>
+            <button class="tab-btn" data-tab="stock">📊 Остатки</button>
+            <button class="tab-btn" data-tab="history">📋 История операций</button>
+            <button class="tab-btn" data-tab="settings">⚙️ Настройки</button>
+        </div>
+
+        <main>
+            <!-- Вкладка Приема товара -->
+            <div id="add" class="tab-content active">
+                <h2><i class="fas fa-plus-circle"></i> Прием товара на склад</h2>
+                <form id="addForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productName">Наименование товара *</label>
+                            <input type="text" id="productName" required placeholder="Например: Ноутбук Dell XPS 13">
+                        </div>
+                        <div class="form-group">
+                            <label for="productCode">Артикул/Код *</label>
+                            <input type="text" id="productCode" required placeholder="DEL-XPS13-2023">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Категория</label>
+                            <select id="category">
+                                <option value="Электроника">Электроника</option>
+                                <option value="Офисная техника">Офисная техника</option>
+                                <option value="Мебель">Мебель</option>
+                                <option value="Канцелярия">Канцелярия</option>
+                                <option value="Прочее">Прочее</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Количество *</label>
+                            <input type="number" id="quantity" required min="1" value="1">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="price">Цена за единицу (руб)</label>
+                            <input type="number" id="price" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="supplier">Поставщик</label>
+                            <input type="text" id="supplier" placeholder="ООО 'Поставщик'">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Примечания</label>
+                        <textarea id="notes" rows="3" placeholder="Дополнительная информация..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Записать на склад
+                    </button>
+                </form>
+            </div>
+
+            <!-- Вкладка Отпуска товара -->
+            <div id="sell" class="tab-content">
+                <h2><i class="fas fa-cart-arrow-down"></i> Отпуск товара клиенту</h2>
+                <form id="sellForm">
+                    <div class="form-group">
+                        <label for="searchProduct">Поиск товара</label>
+                        <div class="search-box">
+                            <input type="text" id="searchProduct" placeholder="Введите название или артикул">
+                            <button type="button" id="searchBtn" class="btn btn-secondary">
+                                <i class="fas fa-search"></i> Найти
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="search-results hidden" id="searchResults">
+                        <h3>Доступные товары:</h3>
+                        <div id="productsList"></div>
+                    </div>
+
+                    <div id="selectedProduct" class="hidden">
+                        <h3>Выбранный товар:</h3>
+                        <div class="product-card">
+                            <div class="product-info">
+                                <strong id="selectedName"></strong>
+                                <div>Артикул: <span id="selectedCode"></span></div>
+                                <div>В наличии: <span id="selectedStock" class="stock-badge"></span></div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sellQuantity">Количество для отпуска *</label>
+                                <input type="number" id="sellQuantity" required min="1" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="clientName">Имя клиента *</label>
+                                <input type="text" id="clientName" required placeholder="Иванов Иван">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="clientPhone">Телефон клиента</label>
+                            <input type="tel" id="clientPhone" placeholder="+7 (999) 123-45-67">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check-circle"></i> Подтвердить отпуск
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Вкладка Остатков -->
+            <div id="stock" class="tab-content">
+                <h2><i class="fas fa-boxes"></i> Текущие остатки на складе</h2>
+                
+                <div class="controls">
+                    <div class="form-group">
+                        <input type="text" id="stockSearch" placeholder="Поиск по товарам..." class="search-input">
+                    </div>
+                    <button id="refreshStock" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Обновить
+                    </button>
+                    <button id="exportStock" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Экспорт
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalItems">0</div>
+                        <div class="stat-label">Всего позиций</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalQuantity">0</div>
+                        <div class="stat-label">Общее количество</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="lowStock">0</div>
+                        <div class="stat-label">Низкий запас</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="stockTable">
+                        <thead>
+                            <tr>
+                                <th>Артикул</th>
+                                <th>Наименование</th>
+                                <th>Категория</th>
+                                <th>Количество</th>
+                                <th>Цена</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockBody">
+                            <!-- Данные будут загружены через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Вкладка Истории -->
+            <div id="history" class="tab-content">
+                <h2><i class="fas fa-history"></i> История операций</h2>
+                
+                <div class="filters">
+                    <select id="filterType" class="filter-select">
+                        <option value="all">Все операции</option>
+                        <option value="приход">Приход</option>
+                        <option value="расход">Расход</option>
+                    </select>
+                    <input type="date" id="filterDateFrom" class="filter-date">
+                    <input type="date" id="filterDateTo" class="filter-date">
+                    <button id="applyFilter" class="btn btn-secondary">
+                        <i class="fas fa-filter"></i> Применить
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Тип</th>
+                                <th>Товар</th>
+                                <th>Количество</th>
+                                <th>Клиент/Поставщик</th>
+                                <th>Ответственный</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <!-- Данные будут загружены через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Вкладка Настроек -->
+            <div id="settings" class="tab-content">
+                <h2><i class="fas fa-cog"></i> Настройки Google Sheets</h2>
+                
+                <div class="settings-card">
+                    <h3><i class="fas fa-table"></i> Интеграция с Google Таблицами</h3>
+                    
+                    <div class="form-group">
+                        <label for="sheetId">ID Google Таблицы</label>
+                        <input type="text" id="sheetId" placeholder="Введите ID вашей таблицы">
+                        <small>ID можно найти в URL таблицы: https://docs.google.com/spreadsheets/d/ВАШ_ID/edit</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sheetName">Имя листа</label>
+                        <input type="text" id="sheetName" value="Склад" placeholder="Имя листа в таблице">
+                    </div>
+
+                    <div class="form-buttons">
+                        <button id="testConnection" class="btn btn-secondary">
+                            <i class="fas fa-plug"></i> Проверить подключение
+                        </button>
+                        <button id="saveSettings" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Сохранить настройки
+                        </button>
+                    </div>
+
+                    <div id="connectionStatus" class="status hidden"></div>
+                </div>
+
+                <div class="settings-card">
+                    <h3><i class="fas fa-file-download"></i> Резервное копирование</h3>
+                    <p>Скачайте все данные склада в виде файла Excel.</p>
+                    <button id="backupData" class="btn btn-success">
+                        <i class="fas fa-download"></i> Создать резервную копию
+                    </button>
+                </div>
+
+                <div class="settings-card">
+                    <h3><i class="fas fa-info-circle"></i> Инструкция</h3>
+                    <ol class="instructions">
+                        <li>Создайте новую Google Таблицу</li>
+                        <li>Скопируйте её ID из URL</li>
+                        <li>Вставьте ID в поле выше</li>
+                        <li>Нажмите "Проверить подключение"</li>
+                        <li>Если необходимо, предоставьте права доступа</li>
+                    </ol>
+                </div>
+            </div>
+        </main>
+
+        <div id="notification" class="notification hidden"></div>
+
+        <footer>
+            <p>Система управления складом v1.0 | Данные хранятся в Google Sheets</p>
+        </footer>
+    </div>
+
+    <!-- Модальное окно -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 id="modalTitle"></h3>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="sheets-api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
